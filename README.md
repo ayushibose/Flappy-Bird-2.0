@@ -5,5 +5,6 @@ I added features such as **oscillating pipes, dynamic rain weather system, adapt
 Through this project, I explored features of pygame and modular game dev concept and I may expand further on this project later on.  
 
 Requirements : python 3 and pygame should be installed.
-![image](https://github.com/user-attachments/assets/8ed06b40-ffa1-4738-bff0-a25c2cb21b8c)
+<img src="https://github.com/user-attachments/assets/8ed06b40-ffa1-4738-bff0-a25c2cb21b8c" width="100" height="300" />
+
 
