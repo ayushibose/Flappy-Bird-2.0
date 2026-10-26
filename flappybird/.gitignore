@@ -1,0 +1,9 @@
+# Ignore generated Pygbag build files
+flappybird/build/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE files
+.idea/

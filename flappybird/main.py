@@ -1,9 +1,7 @@
+import asyncio
 import math
 import random
 import pygame
-from sys import exit
-
-from pygame.mixer_music import set_volume
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -24,18 +22,22 @@ bottomPipe_image = pygame.image.load("assets/bottomPipe.png")
 game_over_image = pygame.image.load("assets/gameover.png")
 start_image = pygame.image.load("assets/start.png")
 
-#Sound
+# Sound
 try:
-    pygame.mixer.music.load("assets/bgmusic.mp3")
+    pygame.mixer.music.load("assets/bgmusic.ogg")
     pygame.mixer.music.set_volume(0.35)
-    score_sound = pygame.mixer.Sound("assets/scoresound.mp3")
+
+    score_sound = pygame.mixer.Sound("assets/scoresound.ogg")
     score_sound.set_volume(0.5)
-    flap_sound = pygame.mixer.Sound("assets/flapsound.mp3")
+
+    flap_sound = pygame.mixer.Sound("assets/flapsound.ogg")
     flap_sound.set_volume(0.1)
-    hit_sound = pygame.mixer.Sound("assets/hitsound.mp3")
-    hit_sound,set_volume(0.5)
-except pygame.error:
-    print("Sound files not found. Game will run without audio.")
+
+    hit_sound = pygame.mixer.Sound("assets/hitsound.ogg")
+    hit_sound.set_volume(0.5)
+
+except pygame.error as e:
+    print(f"Audio error: {e}")
     score_sound = None
     flap_sound = None
     hit_sound = None
@@ -45,7 +47,6 @@ except pygame.error:
 scroll_speed = 1
 bird_startpos = (100, 250)
 font = pygame.font.SysFont('Times New Roman', 26, bold=True)
-quit_game = True
 
 class Raindrop:
     def __init__(self):
@@ -168,12 +169,12 @@ class Ground(pygame.sprite.Sprite):
 def quit_game():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
+            return True
+    return False
 
 
 # Main Game method
-def main():
+async def main():
     global score, scroll_speed
     score = 0
     scroll_speed = 1  # Reset scroll speed when starting a new game
@@ -200,11 +201,10 @@ def main():
 
     run = True
     while run:
-        quit_game()  # Quit
+        if quit_game():
+            return False
 
         window.fill((255, 0, 200))  # Reset frame - black rgb
-        background = pygame.image.load("assets/ground.png").convert()
-        window.blit(background, (0, 0))
 
         # User input
         user_input = pygame.key.get_pressed()
@@ -264,8 +264,7 @@ def main():
                 window.blit(game_over_image, (w_width // 2 - game_over_image.get_width() // 2,
                                               w_height // 2 - game_over_image.get_height() // 2))
                 if user_input[pygame.K_ESCAPE]:  # reset
-                    score = 0
-                    break
+                    return True
 
         # Spawn pipes
         adjusted_pipe_interval = max(200, int(1 / scroll_speed))
@@ -288,33 +287,43 @@ def main():
 
         clock.tick(60)
         pygame.display.update()
+        await asyncio.sleep(0)
 
 
 # Menu
-def menu():
-    global quit_game
-    while quit_game:
-        quit_game()
+async def menu():
+    while True:
+        if quit_game():
+            return
 
         # Draw menu
         window.fill((255, 0, 158))
         window.blit(skyline_image, (0, 0))
         window.blit(ground_image, (0, 470))
         window.blit(bird_images[0], (100, 125))
-        window.blit(start_image, (w_width // 2 - start_image.get_width() // 2,
-                                  w_height // 2 - start_image.get_height() // 2))
+        window.blit(
+            start_image,
+            (
+                w_width // 2 - start_image.get_width() // 2,
+                w_height // 2 - start_image.get_height() // 2
+            )
+        )
 
         # User input
         user_input = pygame.key.get_pressed()
+
         if user_input[pygame.K_SPACE]:
-            # Start background music when game begins
             try:
-                pygame.mixer.music.play(-1)  # -1 means loop indefinitely
+                pygame.mixer.music.play(-1)
             except pygame.error:
-                pass  # Continue without music if file not found
-            main()
+                pass
 
+            if not await main():
+                return
+
+        clock.tick(60)
         pygame.display.update()
+        await asyncio.sleep(0)
 
 
-menu()
+asyncio.run(menu())
